@@ -25,9 +25,9 @@ const addcartreact = async()=>{
 }
 //add cart todb with userid
 const addcartdetail = async()=>{
-  const {title,img,price,rating,favback,cartback} = addcart
+  const {title} = addcart
   const currentname = currentuser.email 
-  const body={title,img,price,rating,favback,cartback,currentname}
+  const body={title,currentname}
   const response = await fetch("http://localhost:5000/cart",{
     method:"POST",
     headers:{"Content-type":"application/json"},
@@ -50,9 +50,9 @@ const deletecart=async(e)=>{
 }
 //add fav to db with userid
 const addfavourite = async()=>{
-  const {title,img,price,rating,favback,cartback} = addcart
+  const {title} = addcart
   const currentname = currentuser.email 
-  const body={title,img,price,rating,favback,cartback,currentname}
+  const body={title,currentname}
   const response = await fetch("http://localhost:5000/fav",{
     method:"POST",
     headers:{"Content-type":"application/json"},

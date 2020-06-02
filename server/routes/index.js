@@ -54,7 +54,7 @@ router.post("/login",async(req,res)=>{
 //items section
 //view all items
 router.get("/items",async (req,res)=>{
-    const items = await Item.findAll({attributes:['title','img','rating','price','favback','cartback']})
+    const items = await Item.findAll({attributes:['items_id','title','img','rating','price','favback','cartback']})
     res.json(items)
 })
 //create items
@@ -83,30 +83,36 @@ router.get("/fav",async(req,res)=>{
     try {
         const user = await User.findAll({attributes:["user_id"],where:{email:currentname}})
         const userid = user[0].user_id
-        const check=await Fav.findAll({attributes:["title","img","rating","price","favback","cartback"],where:{user_id:userid}})
-        res.json(check)
-    } catch (error) {
+        Item.hasMany(Fav,{foreignKey:"items_id"})
+        Fav.belongsTo(Item,{foreignKey:"items_id"})
+        const check=await Fav.findAll({where:{user_id:userid},include:[Item]})
+        const answer = check.map(res=>{return res.item})
+        res.json(answer)
+    } catch (error) { 
         return res.send(`Server Error ${error}`)
     }
 })
 //add to fav
 router.post("/fav",async(req,res)=>{
-    const {title,img,rating,price,currentname} = req.body
+    const {title,currentname} = req.body
     try {
         const user = await User.findAll({attributes:["user_id"],where:{email:currentname}})
             const userid = user[0].user_id
-            const add = await Fav.create({user_id:userid,title,img,price,rating})
+            const itemid = await Item.findAll({attributes:["items_id"],where:{title}})
+            const add = await Fav.create({user_id:userid,items_id:itemid[0].dataValues.items_id})
             res.json(add)
         
     } catch (error) {
-        return res.send("Server Error")
+        return res.send(`Server Error ${error}`)
     }
 })
 //delete from fav
 router.delete("/fav",async(req,res)=>{
     const favid = req.query.favid
     const userid = req.query.userid
-    const response = await Fav.destroy({where:{title:favid,user_id:userid}})
+    const itemid = await Item.findAll({attributes:["items_id"],where:{title:favid}})
+    const add = itemid[0].dataValues.items_id
+    const response = await Fav.destroy({where:{items_id:add,user_id:userid}})
     res.json("Data Deleted")
 })
 
@@ -118,8 +124,11 @@ router.get("/cart",async(req,res)=>{
     try {
         const user = await User.findAll({attributes:["user_id"],where:{email:currentname}})
         const userid = user[0].user_id
-        const check=await Cart.findAll({attributes:["title","img","rating","price","favback","cartback"],where:{user_id:userid}})
-        res.json(check)
+        Item.hasMany(Cart,{foreignKey:"items_id"})
+        Cart.belongsTo(Item,{foreignKey:"items_id"})
+        const check=await Cart.findAll({where:{user_id:userid},include:[Item]})
+        const answer = check.map(res=>{return res.item})
+        res.json(answer)
     } catch (error) {
         return res.send("Server Error")
     }
@@ -130,9 +139,10 @@ router.post("/cart",async(req,res)=>{
     try {
     
         const user = await User.findAll({attributes:["user_id"],where:{email:currentname}})
-            const userid = user[0].user_id
-            const add = await Cart.create({user_id:userid,title,img,price,rating})
-            res.json(add.rows)
+        const userid = user[0].user_id
+        const itemid = await Item.findAll({attributes:["items_id"],where:{title}})
+        const add = await Cart.create({user_id:userid,items_id:itemid[0].dataValues.items_id})
+        res.json(add)
         
     } catch (error) {
         return res.send("Server Error")
@@ -142,7 +152,9 @@ router.post("/cart",async(req,res)=>{
 router.delete("/cart",async(req,res)=>{
     const favid = req.query.favid
     const userid = req.query.userid
-    const response = await Cart.destroy({where:{title:favid,user_id:userid}})    
+    const itemid = await Item.findAll({attributes:["items_id"],where:{title:favid}})
+    const add = itemid[0].dataValues.items_id
+    const response = await Cart.destroy({where:{items_id:add,user_id:userid}})
     res.json("Data Deleted")
 })
 
