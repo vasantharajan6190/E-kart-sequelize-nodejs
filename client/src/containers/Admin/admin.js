@@ -25,7 +25,7 @@ function Admin(props){
         const body = {title,rating,img,price,currentname}
         const response = await fetch("http://localhost:5000/items",{
             method:"POST",
-            headers:{"Content-type":"application/json"},
+            headers:{"Content-type":"application/json",token:localStorage.token},
             body:JSON.stringify(body)
         })
         const res = await response.json()

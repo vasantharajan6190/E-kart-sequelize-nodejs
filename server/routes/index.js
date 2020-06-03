@@ -1,9 +1,12 @@
 const router = require("express").Router()
 const bcrypt = require("bcrypt")
 const User = require("../models/Users")
+const tokengenerator = require("../utils/tokengenerator")
 const Item = require("../models/Items")
 const Fav = require("../models/Fav")
 const Cart = require("../models/Cart")
+const jwt = require("jsonwebtoken")
+const tokencheck = require("../middleware/tokencheck")
 //Register Route
 router.post("/register",async (req,res)=>{
     const {email,name,password,mobile} = req.body
@@ -19,13 +22,14 @@ router.post("/register",async (req,res)=>{
         else{
         const salt = await bcrypt.genSalt(10);
         const hashedpassword = await bcrypt.hash(password,salt)
-       const newuser = await User.create({email,name,password:hashedpassword,mobile_no:mobile})
-       res.json(newuser)
+       const user = await User.create({email,name,password:hashedpassword,mobile_no:mobile})
+       const token = tokengenerator(user.user_id)
+       res.json({user,token})
         }
     }
 }
 catch(error){
-   return res.send("Server Error")
+   return res.send("Server Error "+error)
 }
 })
 //Login Route
@@ -37,7 +41,8 @@ router.post("/login",async(req,res)=>{
            const dbpassword = ans[0].password
            const passwordverify = await bcrypt.compare(password,dbpassword)
            if(passwordverify){
-               return res.json(ans)
+            const token = tokengenerator(ans[0].user_id)
+            return res.json({ans,token})
            }
            else{
                return res.json("incorrect")
@@ -58,7 +63,7 @@ router.get("/items",async (req,res)=>{
     res.json(items)
 })
 //create items
-router.post("/items",async(req,res)=>{
+router.post("/items",tokencheck,async(req,res)=>{
     const {title,img,price,rating,currentname} = req.body
     try {
         const check = await Item.findAll({where:{title}})
@@ -78,7 +83,7 @@ router.post("/items",async(req,res)=>{
 
 //favourites section
 //fav by user
-router.get("/fav",async(req,res)=>{
+router.get("/fav",tokencheck,async(req,res)=>{
     const currentname = req.query.search
     try {
         const user = await User.findAll({attributes:["user_id"],where:{email:currentname}})
@@ -93,7 +98,7 @@ router.get("/fav",async(req,res)=>{
     }
 })
 //add to fav
-router.post("/fav",async(req,res)=>{
+router.post("/fav",tokencheck,async(req,res)=>{
     const {title,currentname} = req.body
     try {
         const user = await User.findAll({attributes:["user_id"],where:{email:currentname}})
@@ -107,7 +112,7 @@ router.post("/fav",async(req,res)=>{
     }
 })
 //delete from fav
-router.delete("/fav",async(req,res)=>{
+router.delete("/fav",tokencheck,async(req,res)=>{
     const favid = req.query.favid
     const userid = req.query.userid
     const itemid = await Item.findAll({attributes:["items_id"],where:{title:favid}})
@@ -119,7 +124,7 @@ router.delete("/fav",async(req,res)=>{
 
 //cart section
 //cart by user
-router.get("/cart",async(req,res)=>{
+router.get("/cart",tokencheck,async(req,res)=>{
     const currentname = req.query.search
     try {
         const user = await User.findAll({attributes:["user_id"],where:{email:currentname}})
@@ -134,7 +139,7 @@ router.get("/cart",async(req,res)=>{
     }
 })
 //add to cart
-router.post("/cart",async(req,res)=>{
+router.post("/cart",tokencheck,async(req,res)=>{
     const {title,img,rating,price,currentname} = req.body
     try {
     
@@ -149,7 +154,7 @@ router.post("/cart",async(req,res)=>{
     }
 })
 //delete from cart
-router.delete("/cart",async(req,res)=>{
+router.delete("/cart",tokencheck,async(req,res)=>{
     const favid = req.query.favid
     const userid = req.query.userid
     const itemid = await Item.findAll({attributes:["items_id"],where:{title:favid}})

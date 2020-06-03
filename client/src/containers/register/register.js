@@ -25,18 +25,19 @@ function Register(){
            const body = {email,password,name,mobile}
            const newadd = await fetch("http://localhost:5000/register",{
                method:"POST",
-               headers:{"Content-type":"application/json"},
+               headers:{"Content-type":"application/json",token:localStorage.token},
                body:JSON.stringify(body)
            })
-           const res = await newadd.json()
-           if(res==="false"){
+           const {user,token} = await newadd.json()
+           if(user==="false"){
             toast.error("User Already exists",{className:"text-center mt-4 rounded"})
            }
-           else if(res==="error"){
+           else if(user==="error"){
             toast.error("Enter Proper Credentials",{className:"text-center mt-4 rounded"})
            }
            else{
            toast.success("Successfully Registered",{className:"text-center mt-4 rounded"})
+           localStorage.setItem("token",token)
            setlogin(true)
            history.push("/shoppingpage")
            history.push("/showitems")

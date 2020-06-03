@@ -20,7 +20,9 @@ function Card(props){
 //cart
 //get cart for current user
 const addcartreact = async()=>{
-  const favourites = await axios.get(`http://localhost:5000/cart?search=${currentuser.email}`)
+  const favourites = await axios.get(`http://localhost:5000/cart?search=${currentuser.email}`,{
+    headers:{"Content-type":"application/json",token:localStorage.token}
+  })
   setcart(favourites.data)
 }
 //add cart todb with userid
@@ -30,7 +32,7 @@ const addcartdetail = async()=>{
   const body={title,currentname}
   const response = await fetch("http://localhost:5000/cart",{
     method:"POST",
-    headers:{"Content-type":"application/json"},
+    headers:{"Content-type":"application/json",token:localStorage.token},
     body:JSON.stringify(body)
   })
 
@@ -38,13 +40,17 @@ const addcartdetail = async()=>{
 //delete cart for the user
 const deletecart=async(e)=>{
   let favid = addcart.title
-  const response = await axios.delete(`http://localhost:5000/cart?userid=${currentuser.user_id}&favid=${favid}`)
+  const response = await axios.delete(`http://localhost:5000/cart?userid=${currentuser.user_id}&favid=${favid}`,{
+    headers:{"Content-type":"application/json",token:localStorage.token}
+  })
 }
 
    //Favourites
   //get fav for current user
   const addfav = async()=>{
-    const favourites = await axios.get(`http://localhost:5000/fav?search=${currentuser.email}`)
+    const favourites = await axios.get(`http://localhost:5000/fav?search=${currentuser.email}`,{
+      headers:{"Content-type":"application/json",token:localStorage.token}
+    })
     setfav(favourites.data)
     addcartreact()
 }
@@ -55,7 +61,7 @@ const addfavourite = async()=>{
   const body={title,currentname}
   const response = await fetch("http://localhost:5000/fav",{
     method:"POST",
-    headers:{"Content-type":"application/json"},
+    headers:{"Content-type":"application/json",token:localStorage.token},
     body:JSON.stringify(body)
   })
 
@@ -63,7 +69,9 @@ const addfavourite = async()=>{
 // delete fav for the user
 const deletefav=async(e)=>{
   let favid = addcart.title
-  const response = await axios.delete(`http://localhost:5000/fav?userid=${currentuser.user_id}&favid=${favid}`)
+  const response = await axios.delete(`http://localhost:5000/fav?userid=${currentuser.user_id}&favid=${favid}`,{
+    headers:{"Content-type":"application/json",token:localStorage.token}
+  })
 }
 //call the addfav to store favitems to global varaible fav
  useEffect(()=>{

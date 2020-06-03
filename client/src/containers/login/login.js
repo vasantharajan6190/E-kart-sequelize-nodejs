@@ -20,19 +20,20 @@ function Login(){
         const body = {email,password}
         const response = await fetch("http://localhost:5000/login",{
             method:"POST",
-            headers:{"Content-type":"application/json"},
+            headers:{"Content-type":"application/json",token:localStorage.token},
             body:JSON.stringify(body)
         })
-        const result = await response.json()
-        if(result==="false"){
+        const {ans,token} = await response.json()
+        if(ans==="false"){
             toast.error("User doesn't exists",{className:"text-center mt-4"})
         }
-        else if(result==="incorrect"){
+        else if(ans==="incorrect"){
             toast.error("Password incorrect",{className:"text-center mt-4"})
         }
         else{
-            setcurrentuser(result[0])
+            setcurrentuser(ans[0])
             toast.success("User logged in",{className:"text-center mt-4"})
+            localStorage.setItem("token",token)
             setlogin(true)
             history.push("/shoppingpage")
             history.push("/showitems")
